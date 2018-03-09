@@ -37,8 +37,6 @@ SUBDIRS :=
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS +=  \
-../cube.c \
-../interface.c \
 ../lcd.c \
 ../main.c
 
@@ -50,26 +48,18 @@ ASM_SRCS +=
 
 
 OBJS +=  \
-cube.o \
-interface.o \
 lcd.o \
 main.o
 
 OBJS_AS_ARGS +=  \
-cube.o \
-interface.o \
 lcd.o \
 main.o
 
 C_DEPS +=  \
-cube.d \
-interface.d \
 lcd.d \
 main.d
 
 C_DEPS_AS_ARGS +=  \
-cube.d \
-interface.d \
 lcd.d \
 main.d
 
@@ -87,10 +77,6 @@ LINKER_SCRIPT_DEP+=
 
 
 # AVR32/GNU C Compiler
-
-
-
-
 
 
 

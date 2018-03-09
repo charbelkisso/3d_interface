@@ -135,18 +135,6 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="cube.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="cube.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="interface.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="interface.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="lcd.c">
       <SubType>compile</SubType>
     </Compile>

@@ -27,40 +27,164 @@ ATmega8, 48, 88, 168, 328
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
 #include "lcd.h"
-#include "cube.h"
-#include "interface.h"
 
 
+
+#define resolution 10
+#define mains 50
+#define refresh 2 * 1000000 / mains
 
 
 void init_display(){
 	lcd_init(LCD_DISP_ON);
 }
 
+void init (void)
+{
+	DDRC &= (0 << PC0);         // pins 0 of PORTC as input
+	
+	DDRC &= (0 << PC4);         // pins 4 of PORTC as input
+	
+	DDRC &= (0 << PC5);         // pins 5 of PORTC as input
+	
+	// run 8-bit TIMER on f_cpu
+	// normal operation
+	
+	TCCR0A = (0 << COM0A1) | (0 << COM0A0) | (0 << COM0B1) | (0 << COM0B0)
+	| (0 << WGM01) | (0 << WGM00 );							// set mode
+	TCCR0B = (0 << WGM02)  //| (0 << WGM13)
+	| (0 << CS02) | (1 << CS01) | (1 << CS00);				// set prescaler clk/64
+	TIMSK0 = (0 << OCIE0B) | (0 << OCIE0A) | (1 << TOIE0 ); // interrupt on Timer 0 overflow
+	
+}
+
+volatile unsigned long timer0_overflow_count;
+volatile unsigned long checkval;
+
+void startTimer() {
+	timer0_overflow_count = 0;
+	TCNT0 = 0;
+}
+
+void ReadPlateX(){
+	unsigned long count = 0;
+	unsigned long total = 0;
+	char y[20];
+	
+	while(checkval < refresh) {
+
+		DDRC |= (1 << PC0);         // pin 0 of PORTC as output
+		PORTC = 0x00;				// switch PC0 to low output
+		
+		DDRC &= ~(1 << PC0);         // pin 0 of PORTC as input
+		
+		while((PINC & 0b00000001) == 0){
+			count++;
+		}
+		total++;
+	}
+	
+	startTimer();
+	
+
+	lcd_gotoxy(0,0);
+	utoa(((count << resolution)/total), y, 10);
+	lcd_puts(y);
+	_delay_ms(5);
+
+}
+
+void ReadPlateY(){
+	unsigned long count = 0;
+	unsigned long total = 0;
+	char y[20];
+	
+	while(checkval < refresh) {
+		
+		DDRC |= (1 << PC4);         // pin 0 of PORTC as output
+		PORTC = 0x00;				// switch PC0 to low output
+		
+		DDRC &= ~(1 << PC4);         // pin 0 of PORTC as input
+		
+		while((PINC & 0b00010000) == 0){
+			count++;
+		}
+		total++;
+
+	}
+	
+	startTimer();
+	
+	
+	lcd_gotoxy(6,0);
+	utoa(((count << resolution)/total), y, 10);
+	lcd_puts(y);
+	_delay_ms(5);
+
+}
+
+void ReadPlateZ(){
+	unsigned long count = 0;
+	unsigned long total = 0;
+	char y[20];
+	
+	while(checkval < refresh) {
+	
+		DDRC |= (1 << PC5);         // pin 0 of PORTC as output
+		PORTC = 0x00;				// switch PC0 to low output
+		
+		DDRC &= ~(1 << PC5);        // pin 0 of PORTC as input
+		
+		while((PINC & 0b00100000) == 0){
+			count++;
+		}
+		total++;
+		
+	}
+	
+	startTimer();
+	
+	//lcd_clrscr();
+	lcd_gotoxy(0,1);
+	utoa(((count << resolution)/total), y, 10);
+	lcd_puts(y);
+	_delay_ms(5);
+
+}
+
+
+
+ISR(TIMER0_OVF_vect) {
+	static unsigned long timer0_millis = 0;
+	static unsigned char timer0_fract = 0;
+	
+	timer0_millis += 1;
+	timer0_fract += 3;
+	
+	if (timer0_fract >= 125) {
+		timer0_fract -= 125;
+		timer0_millis += 1;
+	}
+	
+	timer0_overflow_count++;
+	checkval = ((timer0_overflow_count << 8) + TCNT0) << 2;  //time in milliSec ?
+}
 
 int main (void) {
-	
-	init_interface();
+	init();
+	sei();
 	init_display();
+	startTimer();
+
 
 	while (1)            // infinite main loop
 	{
-		char text[20];
-		//lcd_clrscr();
-		lcd_gotoxy(0,0);
-		utoa(read_plate_x(), text, 10);
-		lcd_puts(text);
-		_delay_ms(5);
-		/*
-		lcd_gotoxy(6,0);
-		utoa(read_plate_y(), text, 10);
-		lcd_puts(text);
-		_delay_ms(5);
-		lcd_gotoxy(0,1);
-		utoa(read_plate_z(), text, 10);
-		lcd_puts(text);
-		_delay_ms(5);
-		*/
+		
+		
+		ReadPlateX();
+		ReadPlateY();
+		ReadPlateZ();
+		
 	}
 	
 }
