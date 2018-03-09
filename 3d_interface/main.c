@@ -152,7 +152,13 @@ void ReadPlateZ(){
 
 }
 
-
+/* 
+clockCyclesPerMicrosecond = 16000000/1000000 = 16
+MICROSECONDS_PER_TIMER0_OVERFLOW = ((64*256)*1000)/(16000000/1000) = 1024
+MILLIS_INC = 1024/1000 = 1.024 = 1 (integer)
+FRAC_INC = (1024%1000 >> 3) = (24 >> 3) = 3
+FRAC_MAX = (1000 >> 3) = 125 
+*/
 
 ISR(TIMER0_OVF_vect) {
 	static unsigned long timer0_millis = 0;
